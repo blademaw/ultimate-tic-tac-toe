@@ -26,7 +26,7 @@ def getNeighboringCells(x,y):
 def getSquares(state, action):
     """ Returns updated squares np.array for square selection/availability for next turn """
     squares = state.squares
-    squares[np.where(state.squares == 0)] = -1 # set past-available to neutral (not won/tied)
+    squares[np.where(state.squares == 0)] = -1 # set all past-available to neutral (not won/tied)
     
     # check if newly-filled cell in square leads to capture or tie
     boardWon = winsTTTBoard(deepcopy(state.board[action.square]))
@@ -38,23 +38,22 @@ def getSquares(state, action):
     # check if next player can go on square corresponding to past player's chosen cell
     squareIndex = action.x * 3 + action.y
     if squares[squareIndex] == -1:
-        squares[squareIndex] = 0 # limit next move to only this square
+        squares[squareIndex] = 0 # limit next move to only this square if not tied/won
         return squares
     else:
-        # get available neighboring squares
-        neighborIndices = getNeighboringCells(action.x,action.y)
-        neighborValues = squares[neighborIndices]
-        validSquares = neighborIndices[np.where(neighborValues == -1)]
+        # get available neighboring squares (incorrect ruleset)
+        # neighborIndices = getNeighboringCells(action.x,action.y)
+        # neighborValues = squares[neighborIndices]
+        # validSquares = neighborIndices[np.where(neighborValues == -1)]
+        # if len(validSquares) == 0:
+        #     # if no adjacent cells available, choose other randomly
+        #     otherSquareIndices = np.array(list(set(range(9)) - set(neighborIndices) - set([squareIndex])))
+        #     if len(otherSquareIndices) == 0: return squares
+        #     otherSquareValues = squares[otherSquareIndices]
+        #     validSquares = otherSquareIndices[np.where(otherSquareValues == -1)]
+        #squares[validSquares] = 0 # update available squares to discovered available
 
-        if len(validSquares) == 0:
-            # if no adjacent cells available, choose other randomly
-            otherSquareIndices = np.array(list(set(range(9)) - set(neighborIndices) - set([squareIndex])))
-            if len(otherSquareIndices) == 0: return squares
-            
-            otherSquareValues = squares[otherSquareIndices]
-            validSquares = otherSquareIndices[np.where(otherSquareValues == -1)]
-
-        squares[validSquares] = 0 # update available squares to discovered available
+        squares[np.where(squares == -1)] = 0 # set options as any other square
         return squares
 
 
