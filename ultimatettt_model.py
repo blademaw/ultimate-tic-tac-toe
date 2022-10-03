@@ -75,6 +75,9 @@ class UltimateTTTRule():
         # return str(self.currentState)
         return f"\nMove {self.actionCounter}: Agent #{self.getCurrentPlayer()} ({self.symbols[self.getCurrentPlayer()]}) to play:\n" + \
             self.currentState.printBoard()
+    
+    def debugState(self):
+        return f"\nMove {self.actionCounter}: Agent #{self.getCurrentPlayer()} ({self.symbols[self.getCurrentPlayer()]}) to play:\n" + str(self.currentState)
 
 
 class UltimateTTTState():

@@ -26,8 +26,10 @@ def loadParameters():
     parser.add_option('-n','--agent_names',help='Names for agents separated by a comma.', default='')
     parser.add_option('-p','--displayGame', action='store_true', help='Display board output.', default=False)
     parser.add_option('-g','--gameRepeat',type='int',help='Number of games to run.', default=1)
+    parser.add_option('-d','--debug',action='store_true',help='Debug: print detailed info for each state.', default=False)
 
     options, unrec = parser.parse_args(sys.argv[1:])
+    options.displayGame = options.displayGame or options.debug
     assert len(unrec) == 0, "Unrecognized options: " + str(unrec)
     # print(options)
     return options
@@ -82,7 +84,8 @@ def run(options):
             agent_names,
             num_agents,
             game_index,
-            options.displayGame
+            display_game=options.displayGame,
+            debug=options.debug
         )
 
         res = game_obj.run() # will be winning agent_index
@@ -91,7 +94,7 @@ def run(options):
     
     print(f"\nResults for {sum(scores)} games:")
     for i in range(1,num_agents+1):
-        print(f"\tAgent {agent_names[i-1]} won {scores[i]} games ({100*scores[i]/sum(scores)}%)")
+        print(f"\tAgent {i-1} {agent_names[i-1]} won {scores[i]} games ({100*scores[i]/sum(scores)}%)")
 
 
 if __name__ == '__main__':

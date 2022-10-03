@@ -3,7 +3,7 @@ from copy import deepcopy
 from ultimatettt_utils import winsTTTBoard
 
 class Game:
-    def __init__(self, game_rule, agents, agent_names, num_agents, game_index, display_game=True):
+    def __init__(self, game_rule, agents, agent_names, num_agents, game_index, display_game=True, debug=False):
         for i, p in enumerate(agents): assert p.player-1 == i
         
         self.game_rule = game_rule
@@ -12,6 +12,7 @@ class Game:
         self.num_agents = num_agents
         self.game_index = game_index
         self.display_game = display_game
+        self.debug = debug
         self.actionCounter = 0
 
     def run(self):
@@ -28,7 +29,10 @@ class Game:
             actions = self.game_rule.getPossibleActions(game_state)
 
             if self.display_game:
-                print(self.game_rule)
+                if self.debug:
+                    print(self.game_rule.debugState())
+                else: 
+                    print(self.game_rule)
             
             selected = agent.selectAction(deepcopy(actions), deepcopy(game_state))
 
@@ -42,7 +46,10 @@ class Game:
         winningPlayer = winsTTTBoard(deepcopy(self.game_rule.currentState.squares.reshape((3,3))), returnPlayer=True)
         
         if self.display_game:
-            print(self.game_rule)
+            if self.debug:
+                    print(self.game_rule.debugState())
+            else: 
+                print(self.game_rule)
         if winningPlayer is not None:
             print(f"Game {self.game_index+1} Result:\n\tAgent {winningPlayer-1}: {self.agent_names[winningPlayer-1]} wins.")
         else:
