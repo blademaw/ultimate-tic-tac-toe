@@ -4,7 +4,7 @@ from ultimatettt_utils import winsTTTBoard
 
 class Game:
     def __init__(self, game_rule, agents, agent_names, num_agents, game_index, display_game=True):
-        for i, p in enumerate(agents): assert p.player == i
+        for i, p in enumerate(agents): assert p.player-1 == i
         
         self.game_rule = game_rule
         self.agents = agents
@@ -44,8 +44,8 @@ class Game:
         if self.display_game:
             print(self.game_rule)
         if winningPlayer is not None:
-            print(f"Game {self.game_index+1}: {self.agent_names[winningPlayer-1]} wins.")
+            print(f"Game {self.game_index+1} Result:\n\tAgent {winningPlayer-1}: {self.agent_names[winningPlayer-1]} wins.")
         else:
-            print(f"Game {self.game_index+1}: the game is a tie.")
+            print(f"Game {self.game_index+1} Result:\n\tthe game is a tie.")
         
         return winningPlayer if winningPlayer is not None else 0
