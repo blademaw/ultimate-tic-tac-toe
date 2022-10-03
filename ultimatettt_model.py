@@ -118,14 +118,11 @@ class UltimateTTTState():
         macroBoard[np.where(macroBoard == -1)] = 0 # make non-taken squares one value
         winPlayer = winsTTTBoard(macroBoard.reshape((3,3)), returnPlayer=True)
         
-        if self.isTerminal() and winPlayer is not None:
-                if winPlayer == player:
-                    # print(f"{winPlayer}, Reward: 1")
-                    return 1
-                else:
-                    # print(f"{winPlayer}, Reward: -1")
-                    return -1
-        # print("Reward: 0")
+        if self.isTerminal():
+            if winPlayer is None: # win = 1, lose = -1, tie = 0
+                return 0
+            else:
+                return 1 if winPlayer == player else -1
         return False
     
     def printBoard(self):
