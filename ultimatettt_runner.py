@@ -35,14 +35,14 @@ def loadParameters():
     return options
 
 
-def loadAgents(match_dict):
+def loadAgents(match_dict, options):
     agents = [None] * len(match_dict['agents'])
 
     for i in range(len(agents)):
         cur_agent = None
         try:
             agentModule = importlib.import_module(match_dict['agents'][i])
-            cur_agent = agentModule.playerAgent(i+1) # init agent with ID
+            cur_agent = agentModule.playerAgent(i+1,options.displayGame) # init agent with ID
         except (NameError, ImportError, IOError):
             print(f"Error: Agent {match_dict['agents'][i]} could not be loaded.",
                     traceback.print_exc())
@@ -73,7 +73,7 @@ def run(options):
     for game_index in range(options.gameRepeat):
         game_rule = UltimateTTTRule()
         
-        loaded_agents = loadAgents(match_dict)
+        loaded_agents = loadAgents(match_dict, options)
 
         for i in range(num_agents):
             print(f"Agent {i}: {match_dict['agents'][i]} loaded.")

@@ -20,9 +20,9 @@ class Game:
             # agent_index is randomly initialized, so Agent 1 goes first/second 50% of time
             agent_index = self.game_rule.getCurrentPlayer() - 1
             agent = self.agents[agent_index]
-            if self.display_game and self.actionCounter == 0:
-                print(f"Agent {agent_index}, {self.agent_names[agent_index]} is going first.")
-                self.actionCounter += 1
+            # if self.display_game and self.actionCounter == 0:
+            #     print(f"Agent {agent_index}, {self.agent_names[agent_index]} is going first.")
+            #     self.actionCounter += 1
 
             game_state = self.game_rule.currentState
 
