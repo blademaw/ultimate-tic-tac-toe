@@ -1,7 +1,7 @@
 """
 Used for commonly-invoked/used functions useful for playing UltimateTTT.
 """
-
+# TODO: refactor this to use UltimateTTTRule
 from copy import copy, deepcopy
 import numpy as np
 
@@ -9,8 +9,10 @@ import numpy as np
 def generateNextState(state, action):
     """ Generates a new state given a current state and action """
     newState = deepcopy(state)
+    assert newState.board[action.square][action.x][action.y] == 0 # ensure cell not taken
+
     newState.board[action.square][action.x][action.y] = action.player
-    newState.currentPlayer = 2 if state.currentPlayer == 1 else 1
+    newState.currentPlayer = 2 if state.currentPlayer == 1 else 1 # FIXME: should use GameRule
     newState.squares = getSquares(deepcopy(newState), action)
     return newState
 
@@ -27,7 +29,7 @@ def getSquares(state, action):
     squares[np.where(state.squares == 0)] = -1 # set past-available to neutral (not won/tied)
     
     # check if newly-filled cell in square leads to capture or tie
-    boardWon = winsTTTBoard(state.board[action.square])
+    boardWon = winsTTTBoard(deepcopy(state.board[action.square]))
     if boardWon:
         squares[action.square] = action.player # player owns square
     elif not boardWon and fullBoard(state.board[action.square]):
@@ -58,13 +60,15 @@ def getSquares(state, action):
 
 def winsTTTBoard(board, returnPlayer=False):
     """ Returns whether or not board is won, and optionally the winning player. """
-    board = np.array(board)
+    board = np.array(board) 
+    board[np.where(board == -1)] = 0 # make unavailable squares one digit (might be redundant)
+    board[np.where(board == -2)] = 0 # do not return ties (rep. as -2) as a winner
 
     if not returnPlayer:
         # check rows, cols, diags
-        anyRowsWon = any([len(set(board[i,:]))==1 for i in range(3)])
-        anyColsWon = any([len(set(board[:,i]))==1 for i in range(3)])
-        anyDiagWon = any([len(set(diag))==1 for diag in [np.diagonal(board),np.fliplr(board).diagonal()]])
+        anyRowsWon = any([(len(set(board[i,:]))==1 and set(board[i,:])!={0}) for i in range(3)])
+        anyColsWon = any([(len(set(board[:,i]))==1  and set(board[:,i])!={0}) for i in range(3)])
+        anyDiagWon = any([(len(set(diag))==1 and set(diag)!={0}) for diag in [np.diagonal(board),np.fliplr(board).diagonal()]])
 
         return anyRowsWon or anyColsWon or anyDiagWon
     else:
@@ -78,7 +82,7 @@ def winsTTTBoard(board, returnPlayer=False):
             if len(diagSet) == 1:
                 if list(diagSet)[0] != 0: return list(diagSet)[0]
         
-        return None
+    return None
 
 
 def fullBoard(board):

@@ -32,15 +32,49 @@ class Action():
 
 class UltimateTTTRule():
     def __init__(self):
-        pass
+        self.currentPlayer = None # keep this so I know it never gets called
+        self.currentState = self.initialGameState()
+        self.actionCounter = 0
 
     def initialGameState(self):
-        self.currentPlayer = np.random.choice([1,2])
-        self.symbols = {self.currentPlayer: "X", self.getNextPlayer(self.currentPlayer): "O"}
-        return UltimateTTTState(getEmptyBoard(), np.array([0,0,0,0,0,0,0,0,0]), self.currentPlayer, self.symbols)
+        currentPlayer = np.random.choice([1,2]) # randomly choose who goes first
+        self.symbols = {currentPlayer: "X", self.getNextPlayer(currentPlayer): "O"} # init symbols
+        return UltimateTTTState(
+            getEmptyBoard(),
+            np.array([0,0,0,0,0,0,0,0,0]),
+            currentPlayer,
+            self.symbols
+        )
+
+    def getCurrentPlayer(self):
+        return self.currentState.getCurrentPlayer()
     
     def getNextPlayer(self, player):
         return 2 if player == 1 else 1
+    
+    def generateNextState(self, state, action):
+        """ Generates a new state given a current state and action """
+        newState = deepcopy(state)
+        newState.board[action.square][action.x][action.y] = action.player
+        newState.currentPlayer = 2 if state.currentPlayer == 1 else 1
+        newState.squares = getSquares(deepcopy(newState), action)
+        return newState
+    
+    def getPossibleActions(self, state):
+        return state.getPossibleActions()
+    
+    def gameEnds(self):
+        return self.currentState.isTerminal()
+    
+    def update(self, action):
+        curState = self.currentState
+        self.currentState = self.generateNextState(curState, action)
+        self.actionCounter += 1
+    
+    def __str__(self):
+        # return str(self.currentState)
+        return f"\nMove {self.actionCounter}: Agent #{self.getCurrentPlayer()} ({self.symbols[self.getCurrentPlayer()]}) to play:\n" + \
+            self.currentState.printBoard()
 
 
 class UltimateTTTState():
@@ -92,7 +126,7 @@ class UltimateTTTState():
         return False
     
     def printBoard(self):
-        print(boardToString(deepcopy(self.board), deepcopy(self.squares)))
+        return boardToString(deepcopy(self.board), deepcopy(self.squares))
 
     def __str__(self):
-        return f"Board:\n{boardToString(deepcopy(self.board), deepcopy(self.squares))}\nTerminal? {'Yes' if self.isTerminal() else 'No'}\nCurrent Player: {self.currentPlayer}\nSquares: {self.squares}\nLegal Moves: {self.getPossibleActions()}"
+        return f"Board:\n{boardToString(deepcopy(self.board), deepcopy(self.squares), self.symbols)}\nTerminal? {'Yes' if self.isTerminal() else 'No'}\nCurrent Player: {self.currentPlayer}\nSquares: {self.squares}\nLegal Moves: {self.getPossibleActions()}"
