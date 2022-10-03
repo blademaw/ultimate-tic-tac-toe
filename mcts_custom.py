@@ -1,6 +1,6 @@
 """
 MCTS single-agent code from https://github.com/pbsinclair42/MCTS
-Adapted to retrieve agent-specific rewards.
+Adapted to retrieve agent-specific rewards and return action-E[reward] dictionary.
 """
 from __future__ import division
 
@@ -59,7 +59,7 @@ class mcts():
         self.rollout = rolloutPolicy
         self.player = player
 
-    def search(self, initialState, needDetails=False):
+    def search(self, initialState, needDetails=False, returnDict=False):
         self.root = treeNode(initialState, None)
 
         if self.limitType == 'time':
@@ -70,8 +70,14 @@ class mcts():
             for i in range(self.searchLimit):
                 self.executeRound()
 
-        bestChild = self.getBestChild(self.root, 0)
+        if returnDict:
+            bestChild, actionVals = self.getBestChild(self.root, 0, returnActions=True)
+        else:
+            bestChild = self.getBestChild(self.root, 0)
+            
         action=(action for action, node in self.root.children.items() if node is bestChild).__next__()
+        if returnDict:
+            return action, actionVals
         if needDetails:
             # return {"action": action, "expectedReward": bestChild.totalReward / bestChild.numVisits}
             return action, bestChild.totalReward / bestChild.numVisits
@@ -109,15 +115,26 @@ class mcts():
             node.totalReward += reward
             node = node.parent
 
-    def getBestChild(self, node, explorationValue):
+    def getBestChild(self, node, explorationValue, returnActions=False):
         bestValue = float("-inf")
         bestNodes = []
-        for child in node.children.values():
+        if returnActions:
+            actionVals = {}
+
+        for action, child in node.children.items():
             nodeValue = node.state.getCurrentPlayer() * child.totalReward / child.numVisits + explorationValue * math.sqrt(
                 2 * math.log(node.numVisits) / child.numVisits)
+            
+            if returnActions:
+                actionVals[action] = child.totalReward / child.numVisits
+
             if nodeValue > bestValue:
                 bestValue = nodeValue
                 bestNodes = [child]
             elif nodeValue == bestValue:
                 bestNodes.append(child)
+        
+        if returnActions:
+            return random.choice(bestNodes), actionVals
+        
         return random.choice(bestNodes)

@@ -15,8 +15,15 @@ class playerAgent(Agent):
             self.mctsStruct = mcts(player=self.player, timeLimit = 1000)
         
         if self.debug:
-            action, val = self.mctsStruct.search(initialState=game_state, needDetails=True)
-            print(f"MCST chose action {action} with expected return {val}")
+            # action, val = self.mctsStruct.search(initialState=game_state, needDetails=True)
+            # print(f"MCST chose action {action} with expected return {val}")
+
+            action, actionVals = self.mctsStruct.search(initialState=game_state, returnDict=True)
+            print("MCTS Action Reward Dist:")
+            for a, v in actionVals.items():
+                print(f"{a}: {v}")
+            print("MCTS chose action", action, "with highest expected return",actionVals[action])
+
         else:
             action = self.mctsStruct.search(initialState=game_state)
         assert action in actions
