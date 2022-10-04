@@ -49,10 +49,11 @@ def saveGameBoard(state, move, path, filename=None, rewardDict=None):
                 axes[board_x,board_y].text(y_loc + 0.5, x_loc + 0.5, 'X', color='black', size=20, ha='center', va='center')
             for x_loc,y_loc in list(zip(*np.where(np.array(state.board[b]) == 2))):
                 axes[board_x,board_y].text(y_loc + 0.5, x_loc + 0.5, 'O', color='black', size=20, ha='center', va='center')
-            for x_loc,y_loc in list(zip(*np.where(np.array(state.board[b]) == 0))):
-                val = np.round(data[exp_dim(b,x_loc,y_loc)],2)
-                if val != float("-inf"):
-                    axes[board_x,board_y].text(y_loc + 0.5, x_loc + 0.5, str(val), color='black', size=14, ha='center', va='center')
+            if rewardDict is not None:
+                for x_loc,y_loc in list(zip(*np.where(np.array(state.board[b]) == 0))):
+                    val = np.round(data[exp_dim(b,x_loc,y_loc)],2)
+                    if val != float("-inf"):
+                        axes[board_x,board_y].text(y_loc + 0.5, x_loc + 0.5, str(val), color='black', size=14, ha='center', va='center')
             
 
     # big symbols
@@ -72,3 +73,4 @@ def saveGameBoard(state, move, path, filename=None, rewardDict=None):
     filename = f"{move}.png" if filename is None else filename
     plt.savefig(os.path.join(path, filename))
     plt.cla()
+    plt.close()

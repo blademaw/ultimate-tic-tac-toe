@@ -68,6 +68,16 @@ class Game:
         # TODO: turn this call into a better organized process (reshaping + calling WinsTTTBoard)
         winningPlayer = winsTTTBoard(deepcopy(self.game_rule.currentState.squares.reshape((3,3))), returnPlayer=True)
         
+        # render end state of game
+        if self.render:
+            saveGameBoard(
+                deepcopy(self.game_rule.currentState),
+                self.actionCounter,
+                self.game_out_path,
+                os.path.join(f"{agent_index}",f"{self.actionCounter}"),
+                None
+            )
+
         if self.display_game:
             if self.debug:
                     print(self.game_rule.debugState())
