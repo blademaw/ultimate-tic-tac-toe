@@ -5,4 +5,6 @@ class Agent:
         self.render = render
 
     def selectAction(self, actions, game_state):
+        if self.render:
+            return actions[0], None
         return actions[0]
