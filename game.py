@@ -1,9 +1,12 @@
 from copy import deepcopy
+from render_board import saveGameBoard
+import os, datetime
+import numpy as np
 
 from ultimatettt_utils import winsTTTBoard
 
 class Game:
-    def __init__(self, game_rule, agents, agent_names, num_agents, game_index, display_game=True, debug=False):
+    def __init__(self, game_rule, agents, agent_names, num_agents, game_index, display_game=True, debug=False, render=False):
         for i, p in enumerate(agents): assert p.player-1 == i
         
         self.game_rule = game_rule
@@ -13,7 +16,14 @@ class Game:
         self.game_index = game_index
         self.display_game = display_game
         self.debug = debug
+        self.render = render
+
         self.actionCounter = 0
+        self.moves = np.zeros(3)
+
+        self.game_out_path = os.path.join("output", f"{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}", f"game_{self.game_index}")
+        if render:
+            for i in range(self.num_agents): os.makedirs(os.path.join(self.game_out_path, f"{i}"))
 
     def run(self):
         while not self.game_rule.gameEnds():
@@ -34,13 +44,26 @@ class Game:
                 else: 
                     print(self.game_rule)
             
-            selected = agent.selectAction(deepcopy(actions), deepcopy(game_state))
+            if self.render:
+                selected, rewardDict = agent.selectAction(deepcopy(actions), deepcopy(game_state))
+                saveGameBoard(
+                    deepcopy(game_state),
+                    self.actionCounter,
+                    self.game_out_path,
+                    os.path.join(f"{agent_index}",f"{self.actionCounter}"),
+                    rewardDict
+                )
+            else:
+                selected = agent.selectAction(deepcopy(actions), deepcopy(game_state))
 
             self.game_rule.update(selected)
 
             if self.display_game:
                 # TODO: Put this in a Displayer class?
                 print(f"Agent {self.agent_names[agent_index]} chooses square {selected.square}, cell ({selected.x},{selected.y}).")
+            
+            self.actionCounter += 1
+            self.moves[agent_index + 1] += 1
 
         # TODO: turn this call into a better organized process (reshaping + calling WinsTTTBoard)
         winningPlayer = winsTTTBoard(deepcopy(self.game_rule.currentState.squares.reshape((3,3))), returnPlayer=True)
@@ -55,4 +78,5 @@ class Game:
         else:
             print(f"Game {self.game_index+1} Result:\n\tthe game is a tie.")
         
-        return winningPlayer if winningPlayer is not None else 0
+        winningPlayer = winningPlayer if winningPlayer is not None else 0
+        return winningPlayer, self.moves

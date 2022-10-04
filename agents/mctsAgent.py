@@ -2,11 +2,12 @@ from mcts_custom import mcts
 from agents.agent import Agent
 
 class playerAgent(Agent):
-    def __init__(self, player, debug=False):
-        super().__init__(player, debug=debug)
+    def __init__(self, player, debug=False, render=False):
+        super().__init__(player, debug=debug, render=render)
         self.mctsStruct = None
         self.initPlayer = player
         self.debug = debug
+        self.render = render
 
     def selectAction(self, actions, game_state):
         if self.mctsStruct is None:
@@ -14,15 +15,19 @@ class playerAgent(Agent):
             assert self.player == self.initPlayer
             self.mctsStruct = mcts(player=self.player, timeLimit = 1000)
         
-        if self.debug:
+        if self.debug or self.render:
             # action, val = self.mctsStruct.search(initialState=game_state, needDetails=True)
             # print(f"MCST chose action {action} with expected return {val}")
 
             action, actionVals = self.mctsStruct.search(initialState=game_state, returnDict=True)
-            print("MCTS Action Reward Dist:")
-            for a, v in actionVals.items():
-                print(f"{a}: {v}")
-            print("MCTS chose action", action, "with highest expected return",actionVals[action])
+            if self.debug:
+                print("MCTS Action Reward Dist:")
+                for a, v in actionVals.items():
+                    print(f"{a}: {v}")
+                print("MCTS chose action", action, "with highest expected return",actionVals[action])
+
+            if self.render:
+                return action, actionVals
 
         else:
             action = self.mctsStruct.search(initialState=game_state)

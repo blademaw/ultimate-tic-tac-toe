@@ -27,6 +27,7 @@ def loadParameters():
     parser.add_option('-p','--displayGame', action='store_true', help='Display board output.', default=False)
     parser.add_option('-g','--gameRepeat',type='int',help='Number of games to run.', default=1)
     parser.add_option('-d','--debug',action='store_true',help='Debug: print detailed info for each state.', default=False)
+    parser.add_option('-r','--render',action='store_true',help='Render game as png for both agents.', default=False)
 
     options, unrec = parser.parse_args(sys.argv[1:])
     options.displayGame = options.displayGame or options.debug
@@ -42,7 +43,7 @@ def loadAgents(match_dict, options):
         cur_agent = None
         try:
             agentModule = importlib.import_module(match_dict['agents'][i])
-            cur_agent = agentModule.playerAgent(i+1,options.displayGame) # init agent with ID
+            cur_agent = agentModule.playerAgent(i+1,options.displayGame,options.render) # init agent with ID
         except (NameError, ImportError, IOError):
             print(f"Error: Agent {match_dict['agents'][i]} could not be loaded.",
                     traceback.print_exc())
@@ -56,6 +57,7 @@ def loadAgents(match_dict, options):
 def run(options):
     num_agents = 2
     scores = [0,0,0] # indices 0=tie;1=win for p1;2= win for p2
+    moves = np.zeros(3)
 
     agent_names = [] if options.agent_names == '' else options.agent_names.split(",")
     agents = options.agents.split(",")
@@ -85,16 +87,18 @@ def run(options):
             num_agents,
             game_index,
             display_game=options.displayGame,
-            debug=options.debug
+            debug=options.debug,
+            render=options.render
         )
 
-        res = game_obj.run() # will be winning agent_index
+        res, move_arr = game_obj.run() # will be winning agent_index
 
         scores[res] += 1
+        moves = moves + move_arr
     
     print(f"\nResults for {sum(scores)} games:")
     for i in range(1,num_agents+1):
-        print(f"\tAgent {i-1} {agent_names[i-1]} won {scores[i]} games ({100*scores[i]/sum(scores)}%)")
+        print(f"\tAgent {i-1} {agent_names[i-1]} won {scores[i]} games ({np.round(100*scores[i]/sum(scores),2)}%) in an average {np.round(moves[i]/options.gameRepeat,2)} moves.")
 
 
 if __name__ == '__main__':
