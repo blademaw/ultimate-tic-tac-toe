@@ -151,7 +151,7 @@ An agent such as `mctsAgent.py` can return an action-reward dictionary, so it wi
 
 With the `-f <filetype>` option, games can be saved to GIFs/other files to produce a replay, such as the following:
 
-<img src="C:\Users\Home PC\Dropbox\Work\Projects\ultimatetictactoe\img\ex_replay.gif" style="zoom:67%;" />
+<img src="img\ex_replay.gif" style="zoom:67%;" />
 
 ## Built with
 
