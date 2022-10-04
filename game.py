@@ -1,28 +1,31 @@
 from copy import deepcopy
-from render_board import saveGameBoard
+from render_board import *
 import os, datetime
 import numpy as np
 
 from ultimatettt_utils import winsTTTBoard
 
 class Game:
-    def __init__(self, game_rule, agents, agent_names, num_agents, game_index, display_game=True, debug=False, render=False):
+    def __init__(self, game_rule, agents, agent_names, num_agents, game_index, options):
         for i, p in enumerate(agents): assert p.player-1 == i
-        
+        # TODO: refactor to use options instead of plethora of arguments
         self.game_rule = game_rule
         self.agents = agents
         self.agent_names = agent_names
         self.num_agents = num_agents
         self.game_index = game_index
-        self.display_game = display_game
-        self.debug = debug
-        self.render = render
+        self.display_game = options.displayGame
+        self.debug = options.debug
+        self.render = options.render
+        self.fileType = options.fileType
 
         self.actionCounter = 0
         self.moves = np.zeros(3)
 
+        self.renderBoard = RenderBoard()
+
         self.game_out_path = os.path.join("output", f"{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}", f"game_{self.game_index}")
-        if render:
+        if self.render:
             for i in range(self.num_agents): os.makedirs(os.path.join(self.game_out_path, f"{i}"))
 
     def run(self):
@@ -46,12 +49,13 @@ class Game:
             
             if self.render:
                 selected, rewardDict = agent.selectAction(deepcopy(actions), deepcopy(game_state))
-                saveGameBoard(
+                self.renderBoard.saveGameBoard(
                     deepcopy(game_state),
                     self.actionCounter,
                     self.game_out_path,
                     os.path.join(f"{agent_index}",f"{self.actionCounter}"),
-                    rewardDict
+                    rewardDict,
+                    self.fileType
                 )
             else:
                 selected = agent.selectAction(deepcopy(actions), deepcopy(game_state))
@@ -70,12 +74,14 @@ class Game:
         
         # render end state of game
         if self.render:
-            saveGameBoard(
+            self.renderBoard.saveGameBoard(
                 deepcopy(self.game_rule.currentState),
                 self.actionCounter,
                 self.game_out_path,
                 os.path.join(f"{agent_index}",f"{self.actionCounter}"),
-                None
+                None,
+                self.fileType,
+                True
             )
 
         if self.display_game:

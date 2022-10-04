@@ -28,6 +28,7 @@ def loadParameters():
     parser.add_option('-g','--gameRepeat',type='int',help='Number of games to run.', default=1)
     parser.add_option('-d','--debug',action='store_true',help='Debug: print detailed info for each state.', default=False)
     parser.add_option('-r','--render',action='store_true',help='Render game as png for both agents.', default=False)
+    parser.add_option('-f','--fileType',help='Render game replay, specifying file type: e.g. gif, mp4', default="png")
 
     options, unrec = parser.parse_args(sys.argv[1:])
     options.displayGame = options.displayGame or options.debug
@@ -86,9 +87,7 @@ def run(options):
             agent_names,
             num_agents,
             game_index,
-            display_game=options.displayGame,
-            debug=options.debug,
-            render=options.render
+            options
         )
 
         res, move_arr = game_obj.run() # will be winning agent_index
