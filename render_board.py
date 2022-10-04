@@ -89,7 +89,7 @@ class RenderBoard:
 
             images = [imageio.imread(filename) for filename in image_names]
             filename = f"replay.{fileType}"
-            imageio.mimsave(os.path.join(path, filename), images, duration=0.6)
+            imageio.mimsave(os.path.join(path, filename), images, duration=0.8)
         
         plt.cla()
         plt.close() # close plots for memory saving
