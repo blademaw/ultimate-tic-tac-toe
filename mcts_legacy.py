@@ -2,40 +2,20 @@
 MCTS single-agent code from https://github.com/pbsinclair42/MCTS
 Adapted to retrieve agent-specific rewards and return action-E[reward] dictionary.
 """
-from collections import defaultdict
-from ultimatettt_model import Action
+from __future__ import division
 
 import time
 import math
 import random
 
-import numpy as np
 
-from ultimatettt_utils import winsTTTBoard
-
-
-def randomPolicy(state, player,PRINTOUT):
+def randomPolicy(state, player):
     while not state.isTerminal():
         try:
-            # selects random action, can be improved by heuristics
-
             action = random.choice(state.getPossibleActions())
         except IndexError:
             raise Exception("Non-terminal state has no possible actions: " + str(state))
         state = state.takeAction(action)
-
-    if PRINTOUT and action in (Action(2, 3, 0, 2), Action(2, 3, 1, 0), Action(2, 3, 1, 1)):
-                print('determined reward of', state.getReward(player))
-    #debugging
-    # if state.getReward(player) == 1:
-    #     print(state)
-    if state.getReward(player) == 1:
-        assert player == winsTTTBoard(state.squares.reshape((3,3)), True)
-        if PRINTOUT:
-            print(action)
-    if PRINTOUT and state.getReward(player) == -1:
-        return -1
-    
     return state.getReward(player)
 
 
@@ -59,7 +39,7 @@ class treeNode():
 
 
 class mcts():
-    def __init__(self, player, timeLimit=None, iterationLimit=None, explorationConstant=1 / math.sqrt(2),
+    def __init__(self, player, timeLimit=None, iterationLimit=None, explorationConstant=2,
                  rolloutPolicy=randomPolicy):
         if timeLimit != None:
             if iterationLimit != None:
@@ -106,19 +86,15 @@ class mcts():
 
     def executeRound(self):
         node = self.selectNode(self.root)
-        if all(node.state.squares == np.array([2, 1, -1, 0, 2, 1, 2, -1, 1])):
-            PRINTOUT = True
-            print("current total reward is",node.totalReward)
-        else:
-            PRINTOUT = False
-        reward = self.rollout(node.state, self.player,PRINTOUT)
-        if PRINTOUT: print("node reward", reward)
+        reward = self.rollout(node.state, self.player)
         self.backpropagate(node, reward)
 
     def selectNode(self, node):
         while not node.isTerminal:
             if node.isFullyExpanded:
-                node = self.getBestChild(node, self.explorationConstant)
+                # node = self.getBestChild(node, self.explorationConstant)
+                # node = random.choice(list(node.children.items()))[1]
+                node = self.UCB(node)
             else:
                 return self.expand(node)
         return node
@@ -141,22 +117,43 @@ class mcts():
             node.totalReward += reward
             node = node.parent
 
+    def UCB(self, node):
+        maxVal = float("-inf")
+        max_children = []
+
+        for child in node.children.values():
+            # if haven't seen action before, explore it
+            if child.numVisits == 0:
+                child.numVisits = 1
+                return child
+            
+            # otherwise, use UCB formula
+            value = 0
+            if child.numVisits > 0:
+                # UCT = win ratio + exploration * sqrt(log(parent visits)/child visits)
+                value = (child.totalReward / child.numVisits) + \
+                    (self.explorationConstant * math.sqrt(math.log(node.numVisits) / child.numVisits))
+                
+                if value > maxVal:
+                    max_children = [child]
+                    maxVal = value
+                elif value == maxVal:
+                    max_children.append(child)
+        
+        return random.choice(max_children)
+
+
+
     def getBestChild(self, node, explorationValue, returnActions=False):
         bestValue = float("-inf")
         bestNodes = []
-        x = -1 if node.state.getCurrentPlayer() != self.player else 1
-        x=1
-        printing=all(node.state.squares == np.array([2, 1, -1, 0, 2, 1, 2, -1, 1]))
         if returnActions:
             actionVals = {}
 
         for action, child in node.children.items():
-            nodeValue = x* child.totalReward / child.numVisits + explorationValue * math.sqrt(
+            nodeValue = child.totalReward / child.numVisits + explorationValue * math.sqrt(
                 2 * math.log(node.numVisits) / child.numVisits)
-
-            if returnActions or printing:
-                print(action, f"{x} * {child.totalReward} / {child.numVisits} + {explorationValue} * {math.sqrt(2 * math.log(node.numVisits) / child.numVisits)}")
-                print(f"\t{nodeValue}")
+            
             if returnActions:
                 actionVals[action] = child.totalReward / child.numVisits
 
@@ -165,7 +162,6 @@ class mcts():
                 bestNodes = [child]
             elif nodeValue == bestValue:
                 bestNodes.append(child)
-        if printing: print()
         
         if returnActions:
             return random.choice(bestNodes), actionVals

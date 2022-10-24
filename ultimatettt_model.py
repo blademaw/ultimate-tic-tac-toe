@@ -69,6 +69,7 @@ class UltimateTTTRule():
     def update(self, action):
         curState = self.currentState
         self.currentState = self.generateNextState(curState, action)
+        self.currentPlayer = self.currentState.getCurrentPlayer()
         self.actionCounter += 1
     
     def __str__(self):
@@ -92,10 +93,13 @@ class UltimateTTTState():
     
     def getPossibleActions(self):
         possibleActions = []
+        # print(self.squares)
         if self.isTerminal(): return []
 
         for square in np.where(self.squares == 0)[0]:
+            # print(square)
             for row in range(3):
+                # print(row)
                 for col in range(3):
                     if self.board[square][row][col] == 0:
                         possibleActions += [Action(self.currentPlayer, square, row, col)]

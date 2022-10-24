@@ -18,6 +18,7 @@ class Game:
         self.debug = options.debug
         self.render = options.render
         self.fileType = options.fileType
+        self.warmup = options.warmup
 
         self.actionCounter = 0
         self.moves = np.zeros(3)
@@ -29,6 +30,12 @@ class Game:
             for i in range(self.num_agents): os.makedirs(os.path.join(self.game_out_path, f"{i}"))
 
     def run(self):
+        resigned = False
+
+        if self.warmup:
+            for a in self.agents:
+                a.warmup(self.game_rule.current_state) # will always be initial state
+
         while not self.game_rule.gameEnds():
             # agent_index is randomly initialized, so Agent 1 goes first/second 50% of time
             agent_index = self.game_rule.getCurrentPlayer() - 1
@@ -60,6 +67,12 @@ class Game:
             else:
                 selected = agent.selectAction(deepcopy(actions), deepcopy(game_state))
 
+            if selected == "resign":
+                print(f"Agent {agent_index}, {self.agent_names[agent_index]} resigned.")
+                winningPlayer = 3 - agent_index
+                resigned = True
+                break
+
             self.game_rule.update(selected)
 
             if self.display_game:
@@ -70,7 +83,8 @@ class Game:
             self.moves[agent_index + 1] += 1
 
         # TODO: turn this call into a better organized process (reshaping + calling WinsTTTBoard)
-        winningPlayer = winsTTTBoard(deepcopy(self.game_rule.currentState.squares.reshape((3,3))), returnPlayer=True)
+        if not resigned:
+            winningPlayer = winsTTTBoard(deepcopy(self.game_rule.currentState.squares.reshape((3,3))), returnPlayer=True)
         
         # render end state of game
         if self.render:

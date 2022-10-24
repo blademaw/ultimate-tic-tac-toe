@@ -29,6 +29,7 @@ def loadParameters():
     parser.add_option('-d','--debug',action='store_true',help='Debug: print detailed info for each state.', default=False)
     parser.add_option('-r','--render',action='store_true',help='Render game as png for both agents.', default=False)
     parser.add_option('-f','--fileType',help='Render game replay, specifying file type: e.g. gif, mp4', default="png")
+    parser.add_option('-w','--warmup',action='store_true',help='Warmup agents.', default=False)
 
     options, unrec = parser.parse_args(sys.argv[1:])
     options.displayGame = options.displayGame or options.debug

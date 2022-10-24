@@ -4,6 +4,9 @@ class Agent:
         self.debug = debug
         self.render = render
 
+    def warmup(self, game_state):
+        print(f"Warming up agent {self.player}")
+
     def selectAction(self, actions, game_state):
         if self.render:
             return actions[0], None
