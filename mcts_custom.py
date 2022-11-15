@@ -3,6 +3,7 @@ MCTS single-agent code from https://github.com/pbsinclair42/MCTS
 Adapted to retrieve agent-specific rewards and return action-E[reward] dictionary.
 """
 from __future__ import division
+from collections import defaultdict
 
 import time
 import math
@@ -39,7 +40,7 @@ class treeNode():
 
 
 class mcts():
-    def __init__(self, player, timeLimit=None, iterationLimit=None, explorationConstant=2,
+    def __init__(self, player, timeLimit=None, iterationLimit=None, explorationConstant=1/math.sqrt(2),
                  rolloutPolicy=randomPolicy):
         if timeLimit != None:
             if iterationLimit != None:
@@ -58,6 +59,7 @@ class mcts():
         self.explorationConstant = explorationConstant
         self.rollout = rolloutPolicy
         self.player = player
+        self.qtable = defaultdict(lambda: 0)
 
     def search(self, initialState, needDetails=False, returnDict=False):
         self.root = treeNode(initialState, None)
@@ -114,6 +116,17 @@ class mcts():
     def backpropagate(self, node, reward):
         while node is not None:
             node.numVisits += 1
+
+            # q_value = node.totalReward / node.numVisits # might not have to divide
+            # delta = (1 / node.numVisits) * (reward - q_value)
+            # node.totalReward += delta
+            # print(delta)
+            
+            # q_value = self.qtable[hash(str(node.state))]
+            # delta = (1 / node.numVisits) * (reward - q_value)
+            # newQ = q_value + delta
+            # self.qtable[hash(str(node.state))] = newQ
+
             node.totalReward += reward
             node = node.parent
 
@@ -133,6 +146,8 @@ class mcts():
                 # UCT = win ratio + exploration * sqrt(log(parent visits)/child visits)
                 value = (child.totalReward / child.numVisits) + \
                     (self.explorationConstant * math.sqrt(math.log(node.numVisits) / child.numVisits))
+                #     (self.explorationConstant * math.sqrt(math.log(node.numVisits) / child.numVisits))
+                # value = self.qtable[hash(str(child.state))] + \
                 
                 if value > maxVal:
                     max_children = [child]
